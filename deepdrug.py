@@ -4,7 +4,6 @@ import numpy as np
 import yaml
 import pandas as pd
 import yaml
-warnings.filterwarnings('ignore')
 import argparse
 import torch as t 
 from torch import Tensor
@@ -14,6 +13,8 @@ from pytorch_lightning import Trainer
 from model import DeepDrug_Container
 from dataset import DeepDrug_Dataset
 from utils import * 
+
+warnings.filterwarnings('ignore')
 
 def get_parser(parser=None):
     if parser == None:
@@ -124,7 +125,7 @@ if __name__ == '__main__':
         earlystopping_mode = 'max'
         earlystopping_min_delta = 0.001
     else:
-        raise 
+        raise ValueError
     checkpoint_callback = pl_callbacks.ModelCheckpoint(dirpath=save_model_folder,
                                         mode = earlystopping_mode,
                                         monitor=earlystopping_tracking,

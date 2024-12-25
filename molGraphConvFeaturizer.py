@@ -1,4 +1,3 @@
-
 '''
 modify from 
 https://github.com/deepchem/deepchem/blob/master/deepchem/feat/molecule_featurizers/mol_graph_conv_featurizer.py#L1-L233 
@@ -25,6 +24,7 @@ from deepchem.utils.molecule_feature_utils import get_bond_type_one_hot
 from deepchem.utils.molecule_feature_utils import get_bond_is_in_same_ring_one_hot
 from deepchem.utils.molecule_feature_utils import get_bond_is_conjugated_one_hot
 from deepchem.utils.molecule_feature_utils import get_bond_stereo_one_hot
+
 # from deepchem.utils.molecule_feature_utils import get_atom_formal_charge_one_hot
 # from deepchem.utils.molecule_feature_utils import get_atom_implicit_valence_one_hot
 # from deepchem.utils.molecule_feature_utils import get_atom_explicit_valence_one_hot
@@ -53,17 +53,19 @@ DEFAULT_GRAPH_DISTANCE_SET = [1, 2, 3, 4, 5, 6, 7]
 DEFAULT_ATOM_IMPLICIT_VALENCE_SET = [0, 1, 2, 3, 4, 5, 6]
 DEFAULT_ATOM_EXPLICIT_VALENCE_SET = [1, 2, 3, 4, 5, 6]
 
-USER_ATOM_TYPE_SET  = ['C', 'N', 'O', 'S', 'F', 'Si', 'P', 'Cl', 'Br', 'Mg', 'Na', 'Ca',
-       'Fe', 'As', 'Al', 'I', 'B', 'V', 'K', 'Tl', 'Yb', 'Sb', 'Sn', 'Ag',
-       'Pd', 'Co', 'Se', 'Ti', 'Zn', 'H', 'Li', 'Ge', 'Cu', 'Au', 'Ni',
-       'Cd', 'In', 'Mn', 'Zr', 'Cr', 'Pt', 'Hg', 'Pb']
+USER_ATOM_TYPE_SET = ['C', 'N', 'O', 'S', 'F', 'Si', 'P', 'Cl', 'Br', 'Mg', 'Na', 'Ca',
+                      'Fe', 'As', 'Al', 'I', 'B', 'V', 'K', 'Tl', 'Yb', 'Sb', 'Sn', 'Ag',
+                      'Pd', 'Co', 'Se', 'Ti', 'Zn', 'H', 'Li', 'Ge', 'Cu', 'Au', 'Ni',
+                      'Cd', 'In', 'Mn', 'Zr', 'Cr', 'Pt', 'Hg', 'Pb']
 USER_TOTAL_DEGREE_SET = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-USER_HYBRIDIZATION_SET = ["SP", "SP2", "SP3", 'SP3D','SP3D2']
+USER_HYBRIDIZATION_SET = ["SP", "SP2", "SP3", 'SP3D', 'SP3D2']
+
+
 def get_atom_implicit_valence_one_hot(
-    atom: RDKitAtom,
-    allowable_set: List[int] = DEFAULT_ATOM_IMPLICIT_VALENCE_SET,
-    include_unknown_set: bool = True) -> List[float]:
-  """Get an one-hot feature of implicit valence of an atom.
+        atom: RDKitAtom,
+        allowable_set: List[int] = DEFAULT_ATOM_IMPLICIT_VALENCE_SET,
+        include_unknown_set: bool = True) -> List[float]:
+    """Get an one-hot feature of implicit valence of an atom.
   Parameters
   ---------
   atom: rdkit.Chem.rdchem.Atom
@@ -79,13 +81,15 @@ def get_atom_implicit_valence_one_hot(
     If `include_unknown_set` is False, the length is `len(allowable_set)`.
     If `include_unknown_set` is True, the length is `len(allowable_set) + 1`.
   """
-  return one_hot_encode(atom.GetImplicitValence(), allowable_set,
-                        include_unknown_set)
+    return one_hot_encode(atom.GetImplicitValence(), allowable_set,
+                          include_unknown_set)
+
+
 def get_atom_explicit_valence_one_hot(
-    atom: RDKitAtom,
-    allowable_set: List[int] = DEFAULT_ATOM_EXPLICIT_VALENCE_SET,
-    include_unknown_set: bool = True) -> List[float]:
-  """Get an one-hot feature of explicit valence of an atom.
+        atom: RDKitAtom,
+        allowable_set: List[int] = DEFAULT_ATOM_EXPLICIT_VALENCE_SET,
+        include_unknown_set: bool = True) -> List[float]:
+    """Get an one-hot feature of explicit valence of an atom.
   Parameters
   ---------
   atom: rdkit.Chem.rdchem.Atom
@@ -101,14 +105,14 @@ def get_atom_explicit_valence_one_hot(
     If `include_unknown_set` is False, the length is `len(allowable_set)`.
     If `include_unknown_set` is True, the length is `len(allowable_set) + 1`.
   """
-  return one_hot_encode(atom.GetExplicitValence(), allowable_set,
-                        include_unknown_set)
+    return one_hot_encode(atom.GetExplicitValence(), allowable_set,
+                          include_unknown_set)
 
 
 def _construct_atom_feature(
-    atom: RDKitAtom, h_bond_infos: List[Tuple[int, str]], use_chirality: bool,
-    use_partial_charge: bool) -> np.ndarray:
-  """Construct an atom feature from a RDKit atom object.
+        atom: RDKitAtom, h_bond_infos: List[Tuple[int, str]], use_chirality: bool,
+        use_partial_charge: bool) -> np.ndarray:
+    """Construct an atom feature from a RDKit atom object.
   Parameters
   ----------
   atom: rdkit.Chem.rdchem.Atom
@@ -128,38 +132,40 @@ def _construct_atom_feature(
     A one-hot vector of the atom feature.
     44+1+5+2+1+12+6+8+7+1+1+2+1 = 91 features
   """
-  atom_type = get_atom_type_one_hot(atom,USER_ATOM_TYPE_SET,include_unknown_set = True)
-  formal_charge = get_atom_formal_charge(atom)
-  hybridization = get_atom_hybridization_one_hot(atom,USER_HYBRIDIZATION_SET,include_unknown_set = False)
-  acceptor_donor = get_atom_hydrogen_bonding_one_hot(atom, h_bond_infos)
-  aromatic = get_atom_is_in_aromatic_one_hot(atom)
-  degree = get_atom_total_degree_one_hot(atom,USER_TOTAL_DEGREE_SET,include_unknown_set = True)
-  total_num_Hs = get_atom_total_num_Hs_one_hot(atom,DEFAULT_TOTAL_NUM_Hs_SET,include_unknown_set = True)
-  atom_feat = np.concatenate([
-      atom_type, formal_charge, hybridization, acceptor_donor, aromatic, degree,
-      total_num_Hs
-  ])
+    atom_type = get_atom_type_one_hot(atom, USER_ATOM_TYPE_SET, include_unknown_set=True)
+    formal_charge = get_atom_formal_charge(atom)
+    hybridization = get_atom_hybridization_one_hot(atom, USER_HYBRIDIZATION_SET, include_unknown_set=False)
+    acceptor_donor = get_atom_hydrogen_bonding_one_hot(atom, h_bond_infos)
+    aromatic = get_atom_is_in_aromatic_one_hot(atom)
+    degree = get_atom_total_degree_one_hot(atom, USER_TOTAL_DEGREE_SET, include_unknown_set=True)
+    total_num_Hs = get_atom_total_num_Hs_one_hot(atom, DEFAULT_TOTAL_NUM_Hs_SET, include_unknown_set=True)
+    atom_feat = np.concatenate([
+        atom_type, formal_charge, hybridization, acceptor_donor, aromatic, degree,
+        total_num_Hs
+    ])
 
-  ### user additional features ####
-  if True:
-    imp_valence = get_atom_implicit_valence_one_hot(atom,DEFAULT_ATOM_IMPLICIT_VALENCE_SET,include_unknown_set=True)
-    exp_valence = get_atom_explicit_valence_one_hot(atom,DEFAULT_ATOM_EXPLICIT_VALENCE_SET,include_unknown_set=True)
-    atom_feat = np.concatenate([atom_feat,imp_valence,exp_valence,[atom.HasProp('_ChiralityPossible'), atom.GetNumRadicalElectrons()],])
-  ###########    END    ############
+    ### user additional features ####
+    if True:
+        imp_valence = get_atom_implicit_valence_one_hot(atom, DEFAULT_ATOM_IMPLICIT_VALENCE_SET,
+                                                        include_unknown_set=True)
+        exp_valence = get_atom_explicit_valence_one_hot(atom, DEFAULT_ATOM_EXPLICIT_VALENCE_SET,
+                                                        include_unknown_set=True)
+        atom_feat = np.concatenate([atom_feat, imp_valence, exp_valence,
+                                    [atom.HasProp('_ChiralityPossible'), atom.GetNumRadicalElectrons()], ])
 
-  if use_chirality:
-    # chirality = get_atom_chirality_one_hot(atom) 
-    chirality = get_atom_chirality_one_hot(atom) 
-    atom_feat = np.concatenate([atom_feat, np.array(chirality)])
+    if use_chirality:
+        # chirality = get_atom_chirality_one_hot(atom)
+        chirality = get_atom_chirality_one_hot(atom)
+        atom_feat = np.concatenate([atom_feat, np.array(chirality)])
 
-  if use_partial_charge:
-    partial_charge = get_atom_partial_charge(atom)
-    atom_feat = np.concatenate([atom_feat, np.array(partial_charge)])
-  return atom_feat
+    if use_partial_charge:
+        partial_charge = get_atom_partial_charge(atom)
+        atom_feat = np.concatenate([atom_feat, np.array(partial_charge)])
+    return atom_feat
 
 
 def _construct_bond_feature(bond: RDKitBond) -> np.ndarray:
-  """Construct a bond feature from a RDKit bond object.
+    """Construct a bond feature from a RDKit bond object.
   Parameters
   ---------
   bond: rdkit.Chem.rdchem.Bond
@@ -169,15 +175,15 @@ def _construct_bond_feature(bond: RDKitBond) -> np.ndarray:
   np.ndarray
     A one-hot vector of the bond feature.
   """
-  bond_type = get_bond_type_one_hot(bond)
-  same_ring = get_bond_is_in_same_ring_one_hot(bond)
-  conjugated = get_bond_is_conjugated_one_hot(bond)
-  stereo = get_bond_stereo_one_hot(bond)
-  return np.concatenate([bond_type, same_ring, conjugated, stereo])
+    bond_type = get_bond_type_one_hot(bond)
+    same_ring = get_bond_is_in_same_ring_one_hot(bond)
+    conjugated = get_bond_is_conjugated_one_hot(bond)
+    stereo = get_bond_stereo_one_hot(bond)
+    return np.concatenate([bond_type, same_ring, conjugated, stereo])
 
 
 class MolGraphConvFeaturizer(MolecularFeaturizer):
-  """This class is a featurizer of general graph convolution networks for molecules.
+    """This class is a featurizer of general graph convolution networks for molecules.
   The default node(atom) and edge(bond) representations are based on
   `WeaveNet paper <https://arxiv.org/abs/1603.00856>`_. If you want to use your own representations,
   you could use this class as a guide to define your original Featurizer. In many cases, it's enough
@@ -221,11 +227,11 @@ class MolGraphConvFeaturizer(MolecularFeaturizer):
   This class requires RDKit to be installed.
   """
 
-  def __init__(self,
-               use_edges: bool = False,
-               use_chirality: bool = False,
-               use_partial_charge: bool = False):
-    """
+    def __init__(self,
+                 use_edges: bool = False,
+                 use_chirality: bool = False,
+                 use_partial_charge: bool = False):
+        """
     Parameters
     ----------
     use_edges: bool, default False
@@ -239,12 +245,12 @@ class MolGraphConvFeaturizer(MolecularFeaturizer):
       Therefore, there is a possibility to fail to featurize for some molecules
       and featurization becomes slow.
     """
-    self.use_edges = use_edges
-    self.use_partial_charge = use_partial_charge
-    self.use_chirality = use_chirality
+        self.use_edges = use_edges
+        self.use_partial_charge = use_partial_charge
+        self.use_chirality = use_chirality
 
-  def _featurize(self, datapoint: RDKitMol, **kwargs) -> GraphData:
-    """Calculate molecule graph features from RDKit mol object.
+    def _featurize(self, datapoint: RDKitMol, **kwargs) -> GraphData:
+        """Calculate molecule graph features from RDKit mol object.
     Parameters
     ----------
     datapoint: rdkit.Chem.rdchem.Mol
@@ -254,65 +260,64 @@ class MolGraphConvFeaturizer(MolecularFeaturizer):
     graph: GraphData
       A molecule graph with some features.
     """
-    assert datapoint.GetNumAtoms(
-    ) > 1, "More than one atom should be present in the molecule for this featurizer to work."
-    if 'mol' in kwargs:
-      datapoint = kwargs.get("mol")
-      raise DeprecationWarning(
-          'Mol is being phased out as a parameter, please pass "datapoint" instead.'
-      )
+        assert datapoint.GetNumAtoms(
+        ) > 1, "More than one atom should be present in the molecule for this featurizer to work."
+        if 'mol' in kwargs:
+            datapoint = kwargs.get("mol")
+            raise DeprecationWarning(
+                'Mol is being phased out as a parameter, please pass "datapoint" instead.'
+            )
 
-    if self.use_partial_charge:
-      try:
-        datapoint.GetAtomWithIdx(0).GetProp('_GasteigerCharge')
-      except:
-        # If partial charges were not computed
-        try:
-          from rdkit.Chem import AllChem
-          AllChem.ComputeGasteigerCharges(datapoint)
-        except ModuleNotFoundError:
-          raise ImportError("This class requires RDKit to be installed.")
+        if self.use_partial_charge:
+            try:
+                datapoint.GetAtomWithIdx(0).GetProp('_GasteigerCharge')
+            except:
+                # If partial charges were not computed
+                try:
+                    from rdkit.Chem import AllChem
+                    AllChem.ComputeGasteigerCharges(datapoint)
+                except ModuleNotFoundError:
+                    raise ImportError("This class requires RDKit to be installed.")
 
-    # construct atom (node) feature
-    h_bond_infos = construct_hydrogen_bonding_info(datapoint)
-    atom_features = np.asarray(
-        [
-            _construct_atom_feature(atom, h_bond_infos, self.use_chirality,
-                                    self.use_partial_charge)
-            for atom in datapoint.GetAtoms()
-        ],
-        dtype=float,
-    )
+        # construct atom (node) feature
+        h_bond_infos = construct_hydrogen_bonding_info(datapoint)
+        atom_features = np.asarray(
+            [
+                _construct_atom_feature(atom, h_bond_infos, self.use_chirality,
+                                        self.use_partial_charge)
+                for atom in datapoint.GetAtoms()
+            ],
+            dtype=float,
+        )
 
-    # construct edge (bond) index
-    src, dest = [], []
-    for bond in datapoint.GetBonds():
-      # add edge list considering a directed graph
-      start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-      src += [start, end]
-      dest += [end, start]
+        # construct edge (bond) index
+        src, dest = [], []
+        for bond in datapoint.GetBonds():
+            # add edge list considering a directed graph
+            start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
+            src += [start, end]
+            dest += [end, start]
 
-    # construct edge (bond) feature
-    bond_features = None  # deafult None
-    if self.use_edges:
-      features = []
-      for bond in datapoint.GetBonds():
-        features += 2 * [_construct_bond_feature(bond)]
-      bond_features = np.asarray(features, dtype=float)
+        # construct edge (bond) feature
+        bond_features = None  # deafult None
+        if self.use_edges:
+            features = []
+            for bond in datapoint.GetBonds():
+                features += 2 * [_construct_bond_feature(bond)]
+            bond_features = np.asarray(features, dtype=float)
 
-    return GraphData(
-        node_features=atom_features,
-        edge_index=np.asarray([src, dest], dtype=int),
-        edge_features=bond_features)
+        return GraphData(
+            node_features=atom_features,
+            edge_index=np.asarray([src, dest], dtype=int),
+            edge_features=bond_features)
 
 
-if __name__  == '__main__':
-    mols = ['COC1=C(C=C2C(=C1)CCN=C2C3=CC(=C(C=C3)Cl)Cl)Cl',]
+if __name__ == '__main__':
+    mols = ['COC1=C(C=C2C(=C1)CCN=C2C3=CC(=C(C=C3)Cl)Cl)Cl', ]
 
-    graph_featurizer = MolGraphConvFeaturizer(use_edges=True,use_chirality=True,use_partial_charge=True)
+    graph_featurizer = MolGraphConvFeaturizer(use_edges=True, use_chirality=True, use_partial_charge=True)
     graph_mols = graph_featurizer.featurize(mols)
 
-
-    print('node_features',graph_mols[0].node_features.shape)
-    print('edge_features',graph_mols[0].edge_features.shape)
-    print('edge_index',graph_mols[0].edge_index.shape)
+    print('node_features', graph_mols[0].node_features.shape)
+    print('edge_features', graph_mols[0].edge_features.shape)
+    print('edge_index', graph_mols[0].edge_index.shape)
