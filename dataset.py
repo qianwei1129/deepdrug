@@ -37,6 +37,18 @@ warnings.filterwarnings('ignore')
 
 
 def read_df_or_parquet(file, save_parquet=False, **args):
+    """
+    读取CSV或Parquet格式的文件。如果Parquet文件存在，则直接读取Parquet文件以提高效率；如果不存在，则读取CSV文件，并可选择保存为Parquet文件。
+    Parameters
+    ----------
+    file:需要读取的文件的地址
+    save_parquet:是否保存为Parquet文件
+    args
+
+    Returns
+    -------
+
+    """
     if os.path.exists(file.replace('.csv', '.parquet')):
         print('parquet format file was used which is found in :', file.replace('.csv', '.parquet'))
         return pd.read_parquet(file.replace('.csv', '.parquet'))
@@ -53,6 +65,16 @@ from torch_sparse import coalesce
 
 
 def graph_to_undirected(data):
+    """
+    用于处理图数据，将图转换为无向图
+    Parameters
+    ----------
+    data
+
+    Returns
+    -------
+
+    """
     # num_nodes = maybe_num_nodes(edge_index, num_nodes)
     edge_index, edge_attr, num_nodes = data.edge_index, data.edge_attr, data.num_nodes
 
@@ -72,6 +94,17 @@ from torch_geometric.utils import degree as geo_degree
 
 
 def graph_add_degree(data, degree='both'):
+    """
+    用于处理图数据，添加节点的度数特征
+    Parameters
+    ----------
+    data
+    degree
+
+    Returns
+    -------
+
+    """
     # print('data:',data,type(data))
     assert degree in ['indegree', 'outdegree', 'both']
 
@@ -83,6 +116,19 @@ def graph_add_degree(data, degree='both'):
 
 def add_self_loops(edge_index, edge_weight: Optional[torch.Tensor] = None,
                    fill_value: float = 1., num_nodes: Optional[int] = None):
+    """
+    用于处理图数据，以添加自环
+    Parameters
+    ----------
+    edge_index
+    edge_weight
+    fill_value
+    num_nodes
+
+    Returns
+    -------
+
+    """
     # N = maybe_num_nodes(edge_index, num_nodes)
     if num_nodes is None: num_nodes = np.max(edge_index) + 1
     loop_index = torch.arange(0, num_nodes, dtype=torch.long, device=edge_index.device)
@@ -162,6 +208,19 @@ class EntryDataset(InMemoryDataset):
     def drug_process(self,
                      drug_df, flag_add_self_loops=False,
                      default_dim_features=91, default_dim_nodes=50):
+        """
+        处理药物数据，将SMILES字符串转换为图特征
+        Parameters
+        ----------
+        drug_df
+        flag_add_self_loops
+        default_dim_features
+        default_dim_nodes
+
+        Returns
+        -------
+
+        """
         import deepchem as dc
         from rdkit import Chem
         from tqdm import tqdm
@@ -181,8 +240,6 @@ class EntryDataset(InMemoryDataset):
                 num_nodes = feat_mat.shape[0]
                 edges = np.array([[], []])
                 edges_attr = np.array([])
-
-
             else:
                 feat_mat = convMol.node_features  # .atom_features
                 num_nodes = feat_mat.shape[0]
@@ -357,6 +414,16 @@ class SeqDataset(data.Dataset):
             self.entry_dict = {}
 
     def __getitem__(self, idx):
+        """
+        可以将序列（如蛋白质序列或药物SMILES字符串）转换为数值表示，并且可以选择使用One-Hot编码
+        Parameters
+        ----------
+        idx
+
+        Returns
+        -------
+
+        """
         entryID = self.entryIDs[idx]
         if self.onehot and (entryID not in self.entry_dict):
             self.entry_dict[entryID] = self.encoder.transform(
@@ -373,6 +440,7 @@ class SeqDataset(data.Dataset):
 
 
 class MultiEmbedDataset_v1(data.Dataset):
+    """这个类用于组合多个数据集，例如将图数据和序列数据结合起来"""
     def __init__(self, *args):
         self.datasets = args  # list
         self.num_samples = len(self.datasets[0])
@@ -397,6 +465,7 @@ class MultiEmbedDataset_v1(data.Dataset):
 
 
 class PairedDataset_v1(t.utils.data.Dataset):  # 需要继承data.Dataset
+    """这个类用于创建配对数据集，它接受两个数据集和一个配对文件，用于创建药物-药物或药物-靶标对"""
     def __init__(self, entry1, entry2, entry_pairs, pair_labels,
                  ):
         self.entry1 = entry1
@@ -418,6 +487,7 @@ class PairedDataset_v1(t.utils.data.Dataset):  # 需要继承data.Dataset
 
 
 class DeepDrug_Dataset(LightningDataModule):
+    """用于准备数据、设置数据加载器和加载训练、验证和测试数据"""
     def __init__(self, entry1_data_folder, entry2_data_folder, entry_pairs_file,
                  pair_labels_file, cv_file=None, cv_fold=0, batch_size=128, task_type='binary',
                  y_transfrom_func=None, category=None, entry1_seq_file=None, entry2_seq_file=None,

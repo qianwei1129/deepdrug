@@ -159,8 +159,7 @@ if __name__ == '__main__':
 
     if isinstance(y_pred[0],t.Tensor):
         y_pred = [x.cpu().data.numpy() for x in y_pred]
-    if isinstance(y_pred,t.Tensor):
-        y_pred = y_pred.cpu().data.numpy()
+    if isinstance(y_pred,t.Tensor):        y_pred = y_pred.cpu().data.numpy()
     y_pred = np.concatenate(y_pred,axis=0) 
     pd.DataFrame(y_pred).to_csv(y_pred_file,header=True,index=False)
     pd.DataFrame(y_true).to_csv(y_true_file,header=True,index=False)

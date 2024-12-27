@@ -22,6 +22,7 @@ import torch.nn.functional as F
 from torch import nn
 import os
 import sys
+import tqdm
 from sklearn.metrics import (accuracy_score, auc, average_precision_score, f1_score,
                              precision_recall_curve, precision_score, recall_score,
                              roc_auc_score, roc_curve, classification_report, r2_score,
